@@ -16,13 +16,15 @@ from pdfminer.high_level import extract_text
 from docx2pdf import convert
 import logging
 import fitz
-
-# Імпортуємо Aspose.PDF
 import aspose.pdf as apdf
+import ffmpeg
 
 # Налаштування логування
 logging.basicConfig(filename='converter.log', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Імпорт винятку Error з ffmpeg._run
+from ffmpeg._run import Error as FFmpegError
 
 # Словник підтримуваних форматів конвертації
 CONVERTIBLE_FORMATS = {
@@ -33,6 +35,14 @@ CONVERTIBLE_FORMATS = {
     ".png": [".jpg", ".webp"],
     ".csv": [".xlsx", ".json"],
     ".json": [".csv", ".xlsx"],
+    ".mp4": [".avi", ".mkv", ".mov", ".flv", ".wmv", ".mp3"],
+    ".mkv": [".mp4", ".avi", ".mov", ".flv", ".wmv"],
+    ".mov": [".mp4", ".avi", ".mkv", ".flv", ".wmv"],
+    ".flv": [".mp4", ".avi", ".mkv", ".mov", ".wmv"],
+    ".wmv": [".mp4", ".avi", ".mkv", ".mov", ".flv"],
+    ".mp3": [".wav", ".ogg"],
+    ".wav": [".mp3", ".ogg"],
+    ".ogg": [".mp3", ".wav"]
 }
 
 class FileItemWidget(QWidget):
@@ -50,7 +60,7 @@ class FileItemWidget(QWidget):
         
         self.checkbox = QCheckBox()
         self.checkbox.setMaximumWidth(20)
-        self.checkbox.setChecked(False) # ЗМІНА: За замовчуванням чекбокс НЕ відмічений при додаванні
+        self.checkbox.setChecked(False)
         self.checkbox.setVisible(True) 
         
         self.file_label = QLabel(self.file_name)
@@ -148,26 +158,23 @@ class FileConverter(QMainWindow):
             }
         """)
         
-        # Головні елементи
         self.file_list = DropListWidget(self)
         self.output_label = QLabel("Папка для збереження: Не обрано")
         self.output_label.setStyleSheet("padding: 5px; background-color: #f0f0f0; border: 1px solid #ccc;")
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         
-        # Кнопки
         self.btn_add = QPushButton("Додати файли")
         self.btn_convert = QPushButton("Конвертувати всі")
+        self.btn_clear = QPushButton("Очистити список")
         self.btn_folder = QPushButton("Обрати папку")
-        self.btn_delete_selected = QPushButton("Видалити (вибрані/всі)") # ЗМІНА: Оновлено текст кнопки
+        self.btn_delete_selected = QPushButton("Видалити (вибрані/всі)")
         self.btn_delete_selected.setVisible(True)
 
-        # Ініціалізуємо self.output_folder за замовчуванням
         self.output_folder = os.path.join(os.path.expanduser("~"), "ConvertedFiles")
         os.makedirs(self.output_folder, exist_ok=True)
         self.output_label.setText(f"Папка для збереження: {self.output_folder}")
         
-        # Налаштування інтерфейсу
         self.setup_ui()
         self.setup_connections()
     
@@ -175,21 +182,19 @@ class FileConverter(QMainWindow):
         central_widget = QWidget()
         layout = QVBoxLayout()
         
-        # Група для кнопок
         button_group = QGroupBox("Дії")
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.btn_add)
         button_layout.addWidget(self.btn_folder)
-        button_layout.addWidget(self.btn_delete_selected) 
+        button_layout.addWidget(self.btn_clear)
+        button_layout.addWidget(self.btn_delete_selected)
         button_group.setLayout(button_layout)
         
-        # Група для списку файлів
         file_group = QGroupBox("Файли для конвертації")
         file_layout = QVBoxLayout()
         file_layout.addWidget(self.file_list)
         file_group.setLayout(file_layout)
         
-        # Додавання елементів до основного лейауту
         layout.addWidget(file_group)
         layout.addWidget(button_group)
         layout.addWidget(self.output_label)
@@ -202,6 +207,7 @@ class FileConverter(QMainWindow):
     def setup_connections(self):
         self.btn_add.clicked.connect(self.add_files)
         self.btn_folder.clicked.connect(self.select_output_folder)
+        self.btn_clear.clicked.connect(self.clear_list)
         self.btn_convert.clicked.connect(self.convert_all_files)
         self.btn_delete_selected.clicked.connect(self.delete_selected_files)
     
@@ -231,32 +237,23 @@ class FileConverter(QMainWindow):
             self.output_folder = folder
             self.output_label.setText(f"Папка для збереження: {folder}")
             os.makedirs(self.output_folder, exist_ok=True)
+    
+    def clear_list(self):
+        if self.file_list.count() == 0:
+            QMessageBox.information(self, "Очистити список", "Список файлів вже порожній.")
+            return
 
-
-# минула функція яка видаляла файли по кнопці очистити список, і використовувалась як видалення після конвертації
-#
-#   def clear_list(self):
-#        # Очищає весь список файлів без умов.
-#        if self.file_list.count() == 0:
-#            QMessageBox.information(self, "Очистити список", "Список файлів вже порожній.")
-#            return
-#
-#        reply = QMessageBox.question(self, "Підтвердження очищення",
-#                                     f"Ви впевнені, що хочете очистити весь список ({self.file_list.count()} файлів)?",
-#                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-#        if reply == QMessageBox.Yes:
-#            self.file_list.clear()
-#            QMessageBox.information(self, "Очистити список", "Список файлів очищено.")
-#            logging.info("Список файлів очищено.")
-#        else:
-#            logging.info("Очищення списку скасовано користувачем.")
-
-
-
+        reply = QMessageBox.question(self, "Підтвердження очищення",
+                                     f"Ви впевнені, що хочете очистити весь список ({self.file_list.count()} файлів)?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.file_list.clear()
+            QMessageBox.information(self, "Очистити список", "Список файлів очищено.")
+            logging.info("Список файлів очищено.")
+        else:
+            logging.info("Очищення списку скасовано користувачем.")
+    
     def delete_selected_files(self):
-        """
-        Видаляє вибрані файли. Якщо жоден файл не вибрано, питає про видалення всіх.
-        """
         items_to_delete = []
         for i in range(self.file_list.count()):
             item = self.file_list.item(i)
@@ -266,14 +263,13 @@ class FileConverter(QMainWindow):
         
         total_files_in_list = self.file_list.count()
 
-        if items_to_delete: # Якщо є вибрані файли
+        if items_to_delete:
             num_selected = len(items_to_delete)
             reply = QMessageBox.question(self, "Підтвердження видалення",
                                          f"Ви впевнені, що хочете видалити {num_selected} вибраних файлів зі списку?",
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             
             if reply == QMessageBox.Yes:
-                # Видаляємо елементи в зворотному порядку, щоб уникнути проблем з індексами
                 for item in reversed(items_to_delete):
                     row = self.file_list.row(item)
                     self.file_list.takeItem(row)
@@ -281,7 +277,7 @@ class FileConverter(QMainWindow):
                 logging.info(f"Видалено {num_selected} вибраних файлів зі списку.")
             else:
                 logging.info("Видалення вибраних файлів скасовано користувачем.")
-        else: # Якщо жоден файл не вибрано
+        else:
             if total_files_in_list == 0:
                 QMessageBox.information(self, "Видалення файлів", "Список файлів порожній.")
                 return
@@ -296,7 +292,7 @@ class FileConverter(QMainWindow):
                 logging.info(f"Видалено всі {total_files_in_list} файлів зі списку.")
             else:
                 logging.info("Видалення всіх файлів скасовано користувачем.")
-
+    
     def convert_all_files(self):
         if not hasattr(self, 'output_folder') or not self.output_folder:
             QMessageBox.warning(self, "Помилка", "Оберіть папку для збереження!")
@@ -311,9 +307,7 @@ class FileConverter(QMainWindow):
             return
 
         self.progress_bar.setVisible(True)
-        
         total_files = self.file_list.count()
-        
         self.progress_bar.setMaximum(total_files)
         self.progress_bar.setValue(0)
         QApplication.processEvents()
@@ -324,9 +318,6 @@ class FileConverter(QMainWindow):
         for i in range(self.file_list.count()):
             item = self.file_list.item(i)
             widget = self.file_list.itemWidget(item)
-            
-            # ЗМІНА: Тепер конвертуються ВСІ файли, незалежно від стану чекбокса
-            # Чекбокси тільки для видалення
             
             if not widget or not widget.format_combo.isEnabled():
                 errors.append(f"{widget.file_name}: Непідтримуваний формат для конвертації")
@@ -373,8 +364,6 @@ class FileConverter(QMainWindow):
             if errors:
                 msg += f"\n\nПомилки:\n" + "\n".join(errors)
             QMessageBox.warning(self, "Результат", msg)
-            
-        self.file_list.clear() # Авто видалення після конвертації
     
     def _convert_file(self, input_path, output_path, input_ext, output_ext):
         logging.info(f"Конвертація: {input_path} ({input_ext}) -> {output_path} ({output_ext})")
@@ -387,20 +376,16 @@ class FileConverter(QMainWindow):
         
         if input_ext in ('.jpg', '.png', '.webp'):
             img = Image.open(input_path)
-            # Перевіряємо, чи зображення має альфа-канал і чи цільовий формат його підтримує
             if img.mode in ('RGBA', 'LA') and output_ext in ('.png', '.webp'):
-                # Зберігаємо з прозорістю
                 if output_ext == '.webp':
-                    img.save(output_path, quality=90, lossless=False) # lossless=False для зменшення розміру з втратами
+                    img.save(output_path, quality=90, lossless=False)
                 else:
-                    img.save(output_path, quality=95) # PNG зберігає якість
-            elif output_ext == '.webp': # Якщо немає прозорості, але зберігаємо в WebP
-                # Конвертуємо до RGB, якщо є альфа, щоб уникнути помилок при збереженні без альфа-каналу
+                    img.save(output_path, quality=95)
+            elif output_ext == '.webp':
                 if img.mode == 'RGBA':
                     img = img.convert('RGB')
                 img.save(output_path, quality=90, lossless=False)
-            else: # Звичайне збереження без прозорості
-                # Конвертуємо до RGB, якщо є альфа, щоб уникнути помилок при збереженні без альфа-каналу
+            else:
                 if img.mode == 'RGBA':
                     img = img.convert('RGB')
                 img.save(output_path, quality=95)
@@ -416,7 +401,6 @@ class FileConverter(QMainWindow):
                 f.write(text)
             logging.info(f"Конвертовано pdf у txt: {output_path}")
         
-        # ОНОВЛЕНО ЗГІДНО З ДОКУМЕНТАЦІЄЮ: Використовуємо DocSaveOptions.DocFormat.DOC_X
         elif input_ext == '.pdf' and output_ext == '.docx':
             self._convert_pdf_to_docx_aspose(input_path, output_path)
             logging.info(f"Конвертовано pdf у docx за допомогою Aspose.PDF: {output_path}")
@@ -438,29 +422,58 @@ class FileConverter(QMainWindow):
             df.to_csv(output_path, index=False, encoding='utf-8')
             logging.info(f"Конвертовано json у csv: {output_path}")
         
+        elif input_ext in ('.mp4', '.mkv', '.mov', '.flv', '.wmv') and output_ext in ('.mp4', '.mkv', '.mov', '.flv', '.wmv'):
+            try:
+                stream = ffmpeg.input(input_path)
+                stream = ffmpeg.output(stream, output_path, vcodec='copy', acodec='copy')
+                ffmpeg.run(stream, overwrite_output=True, quiet=True)
+                logging.info(f"Конвертовано відео {input_ext} у {output_ext}: {output_path}")
+            except ffmpeg.Error as e:
+                stderr_output = e.stderr.decode('utf-8') if e.stderr else "Невідома помилка ffmpeg"
+                raise Exception(f"Помилка конвертації відео: {stderr_output}")
+        
+        elif input_ext in ('.mp4', '.mkv', '.mov', '.flv', '.wmv') and output_ext == '.mp3':
+            try:
+                stream = ffmpeg.input(input_path)
+                stream = ffmpeg.output(stream, output_path, acodec='libmp3lame')
+                ffmpeg.run(stream, overwrite_output=True, quiet=True)
+                logging.info(f"Вирізано звук з {input_ext} і збережено як {output_ext}: {output_path}")
+            except ffmpeg.Error as e:
+                stderr_output = e.stderr.decode('utf-8') if e.stderr else "Невідома помилка ffmpeg"
+                raise Exception(f"Помилка вирізання звуку: {stderr_output}")
+        
+        elif input_ext in ('.mp3', '.wav', '.ogg') and output_ext in ('.mp3', '.wav', '.ogg'):
+            try:
+                stream = ffmpeg.input(input_path)
+                if output_ext == '.ogg':
+                    stream = ffmpeg.output(stream, output_path, acodec='libvorbis')
+                elif output_ext == '.mp3':
+                    stream = ffmpeg.output(stream, output_path, acodec='libmp3lame')
+                else:  # .wav
+                    stream = ffmpeg.output(stream, output_path)
+                ffmpeg.run(stream, overwrite_output=True, quiet=True)
+                logging.info(f"Конвертовано аудіо {input_ext} у {output_ext}: {output_path}")
+            except ffmpeg.Error as e:
+                stderr_output = e.stderr.decode('utf-8') if e.stderr else "Невідома помилка ffmpeg"
+                raise Exception(f"Помилка конвертації аудіо: {stderr_output}")
+        
         else:
             raise ValueError(f"Непідтримувана комбінація конвертації: {input_ext} у {output_ext}")
-
+    
     def _convert_pdf_to_docx_aspose(self, pdf_path, docx_path):
-        """Конвертація PDF у DOCX з використанням Aspose.PDF та DocSaveOptions."""
+        """Конвертація PDF у DOCX з використанням Aspose.PDF"""
         try:
             document = apdf.Document(pdf_path)
-            
             save_options = apdf.DocSaveOptions()
-            
-            # ВИКОРИСТОВУЄМО ПРАВИЛЬНИЙ ФОРМАТ: DOC_X згідно з наданою документацією
             save_options.format = apdf.DocSaveOptions.DocFormat.DOC_X
-            
             document.save(docx_path, save_options)
-            
             logging.info(f"Aspose.PDF: Успішно збережено {pdf_path} як {docx_path}")
         except Exception as e:
             error_message = f"Помилка Aspose.PDF при конвертації {pdf_path} у {docx_path}: {str(e)}"
             logging.error(error_message, exc_info=True)
-            raise Exception(f"Помилка конвертації PDF у DOCX за допомогою Aspose.PDF: {str(e)}. Деталі в лог-файлі.")
+            raise Exception(f"Помилка конвертації PDF у DOCX за допомогою Aspose.PDF: {str(e)}. Деталі у лог-файлі.")
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     converter = FileConverter()
     converter.show()
