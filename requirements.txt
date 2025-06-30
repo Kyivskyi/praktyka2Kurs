@@ -1,23 +1,19 @@
 # pip install -r requirements.txt
 
 # GUI Framework
-PySide6>=6.4.0
-
-# Image processing
-Pillow>=9.0.0
-
-# Data processing
-pandas>=1.5.0
-openpyxl>=3.0.0
+PySide6>=6.5.0         # Main GUI framework (with QTranslator for translations)
+pylupdate6>=6.5.0      # For generating .ts translation files
 
 # Document processing
-python-docx>=0.8.11
-pdfminer.six>=20220319
-docx2pdf>=0.1.8
-PyMuPDF>=1.21.0
+pdfminer.six>=20220524 # PDF to TXT conversion
+python-docx>=0.8.11    # DOCX file manipulation
+PyMuPDF>=1.22.0        # PDF operations (fitz)
+docx2pdf>=0.1.7        # DOCX to PDF conversion
+pdf2docx>=0.5.6        # PDF to DOCX conversion
 
-# PDF processing (commercial - requires license)
-aspose-pdf>=23.1.0
+# Multimedia processing
+ffmpeg-python>=0.2.0   # Audio/video conversion
+Pillow>=9.3.0          # Image processing
 
-# Video/Audio processing
-ffmpeg-python>=0.2.0
+# Data processing
+pandas>=1.5.0          # CSV/Excel/JSON conversion
