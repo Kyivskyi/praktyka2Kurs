@@ -28,7 +28,7 @@ logging.basicConfig(filename='converter.log', level=logging.DEBUG,
 # Імпорт винятку Error з ffmpeg._run
 from ffmpeg._run import Error as FFmpegError
 
-# Словник підтримуваних форматів конвертації
+# Словник підтримуваних форматів конвертації 
 CONVERTIBLE_FORMATS = {
     ".docx": [".pdf"],
     ".pdf": [".txt", ".docx"],
