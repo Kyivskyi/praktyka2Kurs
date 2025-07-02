@@ -21,12 +21,12 @@ import logging
 import fitz 
 import ffmpeg
 
+# Імпорт винятку Error з ffmpeg._run
+from ffmpeg._run import Error as FFmpegError
+
 # Налаштування логування
 logging.basicConfig(filename='converter.log', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Імпорт винятку Error з ffmpeg._run
-from ffmpeg._run import Error as FFmpegError
 
 # Словник підтримуваних форматів конвертації 
 CONVERTIBLE_FORMATS = {
@@ -37,7 +37,7 @@ CONVERTIBLE_FORMATS = {
     ".png": [".jpg", ".webp"],
     ".csv": [".xlsx", ".json"],
     ".json": [".csv", ".xlsx"],
-    ".mp4": [".avi", ".mkv", ".mov", ".flv", ".wmv", ".mp3"],
+    ".mp4": [".mkv", ".mov", ".flv", ".wmv", ".mp3"],
     ".mkv": [".mp4", ".avi", ".mov", ".flv", ".wmv"],
     ".mov": [".mp4", ".avi", ".mkv", ".flv", ".wmv"],
     ".flv": [".mp4", ".avi", ".mkv", ".mov", ".wmv"],
@@ -50,7 +50,7 @@ CONVERTIBLE_FORMATS = {
 class LanguageDialog(QDialog):
     def __init__(self, current_language, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Вибір мови")
+        self.setWindowTitle("Language")
         self.setFixedSize(300, 200)
         
         self.languages = {
@@ -170,10 +170,12 @@ class FileConverter(QMainWindow):
     def __init__(self):
         super().__init__()
         self.current_language = "uk"  # Українська за замовчуванням
+        # self.success_message_template = self.tr("Успішно конвертовано %1 файлів!")
         self.translator = QTranslator(self)
         
         self.load_translation()
         self.init_ui()
+        self.retranslate_ui()
     
     def init_ui(self):
         self.setWindowTitle(self.tr("Конвертер файлів"))
@@ -304,6 +306,7 @@ class FileConverter(QMainWindow):
         self.output_label.setText(self.tr("Папка для збереження: {}").format(self.output_folder))
         self.file_group.setTitle(self.tr("Файли для конвертації"))
         self.button_group.setTitle(self.tr("Дії"))
+        self.success_message_template = self.tr("Успішно конвертовано %1 файлів!")
         
         # Оновлення текстів у списку файлів
         for i in range(self.file_list.count()):
@@ -458,9 +461,9 @@ class FileConverter(QMainWindow):
         self.progress_bar.setVisible(False)
         
         if converted > 0:
-            msg = self.tr("Успішно конвертовано {} файлів!").format(converted)
+            msg = self.success_message_template.replace("%1", str(converted))
             if errors:
-                msg += f"\n\n{self.tr('Помилки:')}\n" + "\n".join(errors)
+                msg += f"\n\n{self.error_message_template.format('\n'.join(errors))}"
             QMessageBox.information(self, self.tr("Результат"), msg)
         else:
             msg = self.tr("Жоден файл не було конвертовано!")
