@@ -3,7 +3,7 @@
 A simple tool to convert files between formats without bullshit.
 
 ## What it does:
-- Converts documents, images, spreadsheets, audio and video  
+- Converts documents, images, ~spreadsheets~, audio and video  
 - Works offline (no internet needed)  
 - No ads, no subscriptions, no crypto mining  
 
