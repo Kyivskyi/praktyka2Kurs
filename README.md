@@ -15,7 +15,7 @@ A simple tool to convert files between formats without bullshit.
 ### For when you just need to convert files without dealing with:
 - Watermarks  
 - "Premium version" popups  
-- Suspicious "download managers"
+- Unlimited advertise banners
 ______________________________________________________________________
 - Python 3.13
 - Windows 10
