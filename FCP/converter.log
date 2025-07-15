@@ -1,5 +1,52 @@
-2025-07-13 01:52:31,905 - INFO - Логування ініціалізовано в D:\GIT\praktyka2Kurs\FCP\converter.log
-2025-07-13 01:52:31,906 - INFO - Програма запущена
-2025-07-13 01:56:01,641 - INFO - Логування ініціалізовано в D:\GIT\praktyka2Kurs\FCP\converter.log
-2025-07-13 01:56:01,642 - INFO - Програма запущена
-2025-07-13 01:56:09,255 - INFO - Opened folder: C:\Users\kolok\ConvertedFiles
+2025-07-15 18:26:34,255 - __main__ - INFO - 
+==================================================
+2025-07-15 18:26:34,255 - __main__ - INFO - Запуск програми з папки: D:\GIT\praktyka2Kurs\FCP
+2025-07-15 18:26:34,256 - __main__ - INFO - Шлях до exe: C:\Users\kolok\AppData\Local\Programs\Python\Python313\python.exe
+2025-07-15 18:26:34,256 - __main__ - INFO - ==================================================
+
+2025-07-15 18:26:34,256 - __main__ - INFO - Базова папка програми: D:\GIT\praktyka2Kurs\FCP
+2025-07-15 18:26:34,257 - __main__ - WARNING - Конфіг не знайдено, створюю з дефолтними значеннями
+2025-07-15 18:26:34,257 - __main__ - INFO - Збережено конфіг: MODE=1
+2025-07-15 18:26:34,257 - __main__ - INFO - Режим роботи: 1 (0=системний+локальний, 1=тільки локальний)
+2025-07-15 18:26:34,258 - __main__ - INFO - Перевірка FFmpeg (режим 1)
+2025-07-15 18:26:34,258 - __main__ - INFO - Створено папку для FFmpeg: D:\GIT\praktyka2Kurs\FCP\ffmpeg
+2025-07-15 18:26:34,259 - __main__ - WARNING - Локальний FFmpeg не знайдено
+2025-07-15 18:26:34,259 - __main__ - INFO - Початок установки FFmpeg...
+2025-07-15 18:26:34,259 - __main__ - INFO - Завантаження FFmpeg з https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+2025-07-15 18:27:27,583 - __main__ - INFO - FFmpeg успішно встановлено
+2025-07-15 18:27:27,600 - __main__ - CRITICAL - Критична помилка: name 'FileConverter' is not defined
+Traceback (most recent call last):
+  File "D:\GIT\praktyka2Kurs\FCP\main.py", line 209, in main
+    window = FileConverter()  # Ваш головний вікно
+             ^^^^^^^^^^^^^
+NameError: name 'FileConverter' is not defined
+2025-07-15 18:27:57,574 - __main__ - INFO - 
+==================================================
+2025-07-15 18:27:57,574 - __main__ - INFO - Запуск програми з папки: D:\GIT\praktyka2Kurs\FCP
+2025-07-15 18:27:57,576 - __main__ - INFO - Шлях до exe: C:\Users\kolok\AppData\Local\Programs\Python\Python313\python.exe
+2025-07-15 18:27:57,577 - __main__ - INFO - ==================================================
+
+2025-07-15 18:27:57,578 - __main__ - INFO - Базова папка програми: D:\GIT\praktyka2Kurs\FCP
+2025-07-15 18:27:57,578 - __main__ - INFO - Режим роботи: 1 (0=системний+локальний, 1=тільки локальний)
+2025-07-15 18:27:57,578 - __main__ - INFO - Перевірка FFmpeg (режим 1)
+2025-07-15 18:28:00,631 - __main__ - INFO - Локальний FFmpeg працює
+2025-07-15 18:28:00,649 - __main__ - CRITICAL - Критична помилка: name 'FileConverter' is not defined
+Traceback (most recent call last):
+  File "D:\GIT\praktyka2Kurs\FCP\main.py", line 209, in main
+    window = FileConverter()  # Ваш головний вікно
+             ^^^^^^^^^^^^^
+NameError: name 'FileConverter' is not defined
+2025-07-15 18:30:09,378 - root - INFO - Програма запущена
+2025-07-15 18:30:09,379 - __main__ - INFO - Базова папка програми: D:\GIT\praktyka2Kurs\FCP
+2025-07-15 18:30:09,382 - __main__ - INFO - Режим роботи: 1 (0=системний+локальний, 1=тільки локальний)
+2025-07-15 18:30:09,382 - __main__ - INFO - Перевірка FFmpeg (режим 1)
+2025-07-15 18:30:09,395 - __main__ - INFO - Локальний FFmpeg працює
+2025-07-15 18:39:09,227 - INFO - Логування ініціалізовано в D:\GIT\praktyka2Kurs\FCP\converter.log
+2025-07-15 18:39:10,008 - INFO - Програма запущена
+2025-07-15 18:39:10,012 - INFO - Створено папку ffmpeg: D:\GIT\praktyka2Kurs\FCP\ffmpeg
+2025-07-15 18:39:10,013 - WARNING - Локальний FFmpeg не знайдено
+2025-07-15 18:39:10,013 - INFO - Починаю завантаження FFmpeg...
+2025-07-15 18:39:56,119 - INFO - FFmpeg успішно розпаковано у локальну папку
+2025-07-15 18:39:56,128 - INFO - Архів FFmpeg видалено
+2025-07-15 18:39:59,206 - INFO - Локальний FFmpeg знайдено
+2025-07-15 18:39:59,207 - INFO - Локальний FFmpeg додано до PATH
